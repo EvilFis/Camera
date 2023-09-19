@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import multiprocessing
 
-from multiprocessing import Barrier
+from multiprocessing import Barrier, Pipe
 
 from .BaseCamera import BaseCamera
 
@@ -29,7 +29,9 @@ class Camera(BaseCamera):
     
     def __init__(self,
                  device_id: typing.Union[int, str],
-                 mode: str = "stream"):
+                 mode: str = "stream",
+                 width: int = 640,
+                 height: int = 480):
         """
         Args:
             `device_id (int | str)`: ID камеры
@@ -40,7 +42,8 @@ class Camera(BaseCamera):
             `frame` - Запись кадров потокового вывода с камеры в файл
         """
         # Создание базовой конфугурации логировния информации
-        logging.basicConfig(level=logging.INFO, 
+
+        logging.basicConfig(level=logging.INFO,
                             filename="./log/camera.log",
                             filemode="a",
                             format="%(asctime)s %(levelname)s %(message)s")
@@ -49,17 +52,22 @@ class Camera(BaseCamera):
         if mode not in camera_mode:
             logging.warning(f"[CCTV] There is no '{mode}' mode of operation, 'stream' mode is selected by default")
             mode = "stream"
-        
+
         self.__device_id = device_id
         self.__id = self.__valid_id(device_id) if isinstance(device_id, str) else device_id
         self.__mode = mode.lower()
+        self.__width = width
+        self.__height = height
         self.__flag = True
 
         logging.info(f"[CCTV] Camera using {self.__device_id} camera id. Operating mode '{self.__mode}'")
-    
+
+    def __del__(self):
+        cv2.destroyAllWindows()
+
     def __str__(self) -> str:
         return f"[CCTV] Camera using '{self.__device_id}' camera id.\nOperating mode '{self.__mode}'"
-    
+
     @property
     def device_id(self) -> typing.Union[int, str]:
         """Получение текущего ID камеры
@@ -216,13 +224,13 @@ The folder has already been created")
         ipv4_extract_pattern = "(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)"
         ipv4 = re.findall(ipv4_extract_pattern, device_id)
         
-        if len(ipv4) >=1:
+        if len(ipv4) >= 1:
             return ipv4[0].replace(".", "_")
         elif device_id.isdigit():
             return int(device_id)
         return device_id
             
-    def __check_camera(self, capture: cv2.VideoCapture) -> tuple:
+    def __check_camera(self) -> tuple:
         """Проверка работы камеры
 
         Args:
@@ -235,7 +243,7 @@ The folder has already been created")
             `tuple`: Статуст камеры. Полученный кадр с камеры 
         """
         
-        ret, frame = capture.read()
+        ret, frame = self._cap.read()
         
         if not ret:
             logging.error(f"Failed to get information from camera {self.__device_id}")
@@ -243,9 +251,7 @@ The folder has already been created")
         
         return ret, frame
     
-    def release(self, capture: cv2.VideoCapture,
-                show_gui: bool, 
-                writer = None) -> None: 
+    def release(self, show_gui: bool, writer = None) -> None:
         """Обнуляем параметры камеры и уничтожаем имеющиеся окно предосмотра
 
         Args:
@@ -260,7 +266,7 @@ The folder has already been created")
         if self.__mode == "video":
             writer.release()
             
-        capture.release()
+        self._cap.release()
         self.stop()
         logging.info(f"[CCTV] The camera with the index {self.__device_id} has shut down")
     
@@ -268,14 +274,15 @@ The folder has already been created")
         """Вспомогательный метод для остановки потокового вещания камеры
         """
         self.__flag = False
-    
+
     def stream(self, 
                img_count: int = 10,
                time_out: int = 5,
                path: str = "./",
                show_gui: bool = True,
                fps: int = 30,
-               barrier: Barrier = None) -> None:
+               barrier: Barrier = None,
+               sender: Pipe = None) -> None:
         """Запуск потока видеозаписи видео/сохранения кадров/вывода
 
         Args:
@@ -291,13 +298,14 @@ The folder has already been created")
             
             `barier (Barrier)`: Барьер для синхронизации потоков. Используется в мультипроцесорности или многопоточности. По умолчанию None.
         """
-        
-        self.__flag = True
-        
-        cap = cv2.VideoCapture(self.device_id, cv2.CAP_FFMPEG if isinstance(self.device_id, str) else None)
-        _, frame = self.__check_camera(cap) # Проверка камеры на роботоспособность
 
-        
+        self._cap = cv2.VideoCapture(self.device_id, cv2.CAP_FFMPEG if isinstance(self.device_id, str) else None)
+        self._cap.set(3, self.__width)
+        self._cap.set(4, self.__height)
+
+        self.__flag = True
+        _, frame = self.__check_camera() # Проверка камеры на роботоспособность
+
         if self.__mode == "video" or self.__mode == "frame":
             self._create_folder(folder_name=f"Camera_{self.__id}_{self.__mode}", path=path)
         
@@ -315,19 +323,22 @@ The folder has already been created")
         logging.info(f"[CCTV] The camera with the index {self.__device_id} has started working in the '{self.__mode}' mode")
         
         while self.__flag:
-            
             try:
                 key = cv2.waitKey(1)
-                _, frame = cap.read()
+                _, frame = self._cap.read()
                 
                 # Сохранение кадра в файл
-                if (self.__mode == "frame"):
-                    frame, counter, start_time = self._save_frame(start_time, time_out, path, frame, counter)
+                if self.__mode == "frame":
+                    frame, counter, start_time = self._save_frame(start_time, time_out, path,
+                                                                  frame, counter)
                 
                 # Сохранение видео в файл
-                elif (self.__mode == "video"):
+                elif self.__mode == "video":
                     writer.write(frame)
-                
+
+                if sender:
+                    sender.send(frame)
+
                 # Отображение окна предосмотра видео
                 if show_gui:
                     cv2.imshow(f"Camera {self.__device_id}", frame)
@@ -335,16 +346,16 @@ The folder has already been created")
                 # Выход по нажатию клавиши Q или по вызову метода stop
                 if key == ord('q') & 0xFF or not self.__flag:
                     logging.info("[CCTV] The recording was completed by pressing a key or calling the 'stop' method")
-                    self.release(capture=cap, show_gui=show_gui, writer=writer)
+                    self.release(show_gui=show_gui, writer=writer)
                 
                 # Выход при сохранении всех изображений
                 if counter >= img_count:
                     logging.info(f"[CCTV] The recording has ended. All images have been successfully collected")
-                    self.release(capture=cap, show_gui=show_gui, writer=writer)
+                    self.release(show_gui=show_gui, writer=writer)
                 
             except:
                 logging.error(f"[CCTV] An unexpected error has occurred, the operation of the camera under the index {self.__device_id} is suspended")
-                self.release(capture=cap, show_gui=show_gui, writer=writer)
+                self.release(show_gui=show_gui, writer=writer)
     
 
 if __name__ == "__main__":

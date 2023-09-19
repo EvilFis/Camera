@@ -1,20 +1,16 @@
-import re
 import os
-from typing import NoReturn
 import cv2
 import time
 import typing
 import logging
 import numpy as np
-import multiprocessing
 import pyrealsense2 as rs
 
-from multiprocessing import Barrier
+from multiprocessing import Barrier, Pipe
 
 from .BaseCamera import BaseCamera  # Custom abstract class
 
 
-# TODO Не проверенный код в боевой задаче
 class CameraRS(BaseCamera):
     
     __slots__ = ["__device_id", "__mode"]
@@ -80,7 +76,11 @@ class CameraRS(BaseCamera):
         self.__colorizer.set_option(rs.option.visual_preset, 0)
 
         logging.info(f"[RS] RealSense camera using {self.__device_name} #{self.__device_serial_number} camera id. Operating mode '{self.__mode}'")
-          
+
+    def __del__(self):
+        self.__pipeline.stop()
+        cv2.destroyAllWindows()
+
     def __str__(self):
         return f"[RS] RealSense camera using {self.__device_name} #{self.__device_serial_number} camera id. Operating mode '{self.__mode}'"
     
@@ -416,7 +416,8 @@ The folder has already been created")
                path: str = "./",
                show_gui_color: bool = True,
                show_gui_depth: bool = True,
-               barrier: Barrier = None):
+               barrier: Barrier = None,
+               sender: Pipe = None):
         """Запуск потока видеозаписи видео/сохранения кадров/вывода
 
         Args:
@@ -495,7 +496,10 @@ The folder has already been created")
                 elif self.__mode == "video":
                     depth_writer.write(depth_i) 
                     color_writer.write(color_i)
-                
+
+                if sender:
+                    sender.send(color_i)
+
                 # Отображение окна предосмотра видео
                 if show_gui_color:
                     cv2.imshow(f"{self.__device_name} | {self.__device_serial_number} color", color_i)
