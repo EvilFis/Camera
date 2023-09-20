@@ -6,7 +6,7 @@ import threading
 from multiprocessing import Process, Barrier, Pipe
 
 from Camera import Camera
-from HandRecognition import config
+from config import FingersID, CameraConfig, DetectionConfig
 from HandRecognition import calculate_angle, draw_landmarks, get_frame_keypoints
 
 
@@ -42,7 +42,7 @@ def __prediction(image: np.ndarray,
             angle = calculate_angle(
                 a=key_points[fingers_info[finger]["id"][0]],
                 b=key_points[fingers_info[finger]["id"][1]],
-                c=key_points[config.fingersID.wrist[0]]
+                c=key_points[FingersID.wrist[0]]
             )
 
             fingers_info[finger]["angle"] = angle
@@ -87,27 +87,27 @@ def hand_detection(barrier: Barrier,
         "Thumb": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.thumb
+            "id": FingersID.thumb
         },
         "Index": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.index
+            "id": FingersID.index
         },
         "Middle": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.middle
+            "id": FingersID.middle
         },
         "Ring": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.ring
+            "id": FingersID.ring
         },
         "Pinky": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.pinky
+            "id": FingersID.pinky
         }
     }
 
@@ -115,39 +115,39 @@ def hand_detection(barrier: Barrier,
         "Thumb": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.thumb
+            "id": FingersID.thumb
         },
         "Index": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.index
+            "id": FingersID.index
         },
         "Middle": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.middle
+            "id": FingersID.middle
         },
         "Ring": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.ring
+            "id": FingersID.ring
         },
         "Pinky": {
             "close_finger": False,
             "angle": None,
-            "id": config.fingersID.pinky
+            "id": FingersID.pinky
         }
     }
 
     barrier.wait()
 
-    hands_left = mp.solutions.hands.Hands(min_detection_confidence=config.detection.detection_confidence,
-                                          min_tracking_confidence=config.detection.tracking_confidence,
-                                          max_num_hands=config.detection.num_hands)
+    hands_left = mp.solutions.hands.Hands(min_detection_confidence=DetectionConfig.detection_confidence,
+                                          min_tracking_confidence=DetectionConfig.tracking_confidence,
+                                          max_num_hands=DetectionConfig.num_hands)
 
-    hands_right = mp.solutions.hands.Hands(min_detection_confidence=config.detection.detection_confidence,
-                                           min_tracking_confidence=config.detection.tracking_confidence,
-                                           max_num_hands=config.detection.num_hands)
+    hands_right = mp.solutions.hands.Hands(min_detection_confidence=DetectionConfig.detection_confidence,
+                                           min_tracking_confidence=DetectionConfig.tracking_confidence,
+                                           max_num_hands=DetectionConfig.num_hands)
 
     while True:
         key = cv2.waitKey(1) & 0xFF
@@ -172,15 +172,15 @@ def hand_detection(barrier: Barrier,
 
 
 def main():
-    web_cam1 = Camera(device_id=config.camera.ids[0],
-                      mode=config.camera.mode,
-                      width=config.camera.width,
-                      height=config.camera.height)
+    web_cam1 = Camera(device_id=CameraConfig.ids[0],
+                      mode=CameraConfig.mode,
+                      width=CameraConfig.width,
+                      height=CameraConfig.height)
 
-    web_cam2 = Camera(device_id=config.camera.ids[1],
-                      mode=config.camera.mode,
-                      width=config.camera.width,
-                      height=config.camera.height)
+    web_cam2 = Camera(device_id=CameraConfig.ids[1],
+                      mode=CameraConfig.mode,
+                      width=CameraConfig.width,
+                      height=CameraConfig.height)
 
     barrier = Barrier(3)
     rec_web_cam1, send_web_cam1 = Pipe()

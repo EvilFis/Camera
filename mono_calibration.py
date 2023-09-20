@@ -6,7 +6,7 @@ import shutil
 import argparse
 
 from Camera import Camera
-from Calibration import MonoConfig
+from config import MonoConfig, ReconstructionsConfig
 from Calibration import mono_calibration_camera, save_json
 
 parser = argparse.ArgumentParser(description="Test file")
@@ -15,13 +15,15 @@ parser.add_argument("-so", "--stream-off", dest="stream",
 
 arguments = parser.parse_args()
 
-
 if arguments.stream:
     try:
         shutil.rmtree(MonoConfig.path)
-        os.mkdir(MonoConfig.path)
     except FileNotFoundError:
         pass
+
+    try:
+        os.mkdir(MonoConfig.path)
+        os.mkdir(ReconstructionsConfig.inside_camera_parameters_path)
     except FileExistsError:
         pass
 
@@ -58,7 +60,7 @@ for camera_id in MonoConfig.camera_ids:
     }
 
     save_json(data=inside_camera_params,
-              path=MonoConfig.path,
+              path=ReconstructionsConfig.inside_camera_parameters_path,
               name_file=f"camera_{camera_id}")
 
 

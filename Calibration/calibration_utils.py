@@ -7,7 +7,7 @@ import random
 
 def save_json(data: dict, path: str = "./", name_file: str = "Untitled"):
     with open(f"{path}/{name_file}.json", "w", encoding="UTF-8") as fp:
-        fp.write(json.dumps(data))
+        fp.write(json.dumps(data, indent=2))
         print(f"[!] File `{name_file}` saved successfully")
 
 

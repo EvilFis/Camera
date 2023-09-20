@@ -39,10 +39,12 @@ stereo_calibration:
   height: 480 # Высота
   img_count: 10
   time_out: 3
-#  path: "./StereoCalibrationImages"
-  path: "./MonoCalibrationImages"
+  path: "./StereoCalibrationImages"
   show_gui: 1
   rows: 6
   columns: 9
   type_calib: "chess"
   save: 0
+
+reconstruction:
+  inside_camera_parameters_path: "./InsideCameraParameters"

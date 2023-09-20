@@ -1,8 +1,8 @@
 import cv2
 import mediapipe as mp
 
-from data_struct import config
-from utils import draw_landmarks, calculate_angle, get_frame_keypoints
+from config import FingersID, CameraConfig, DetectionConfig
+from HandRecognition import draw_landmarks, calculate_angle, get_frame_keypoints
 
 
 # ================== Инициализация значений ===============
@@ -10,42 +10,42 @@ fingers_info = {
     "Thumb": {
         "up": False,
         "angle": None,
-        "id": config.fingersID.thumb
+        "id": FingersID.thumb
     },
     "Index": {
         "up": False,
         "angle": None,
-        "id": config.fingersID.index
+        "id": FingersID.index
     },
     "Middle": {
         "up": False,
         "angle": None,
-        "id": config.fingersID.middle
+        "id": FingersID.middle
     },
     "Ring": {
         "up": False,
         "angle": None,
-        "id": config.fingersID.ring
+        "id": FingersID.ring
     },
     "Pinky": {
         "up": False,
         "angle": None,
-        "id": config.fingersID.pinky
+        "id": FingersID.pinky
     }
 }
 
 mp_hands = mp.solutions.hands
 
 # Настройки камеры
-cap = cv2.VideoCapture(config.camera.ids[1])
-cap.set(3, config.camera.width)
-cap.set(4, config.camera.height)
+cap = cv2.VideoCapture(CameraConfig.ids[1])
+cap.set(3, CameraConfig.width)
+cap.set(4, CameraConfig.height)
 # =========================================================
 
 # ==================== Распознование ======================
-with mp_hands.Hands(min_detection_confidence=config.detection.detection_confidence,
-                    min_tracking_confidence=config.detection.tracking_confidence,
-                    max_num_hands=config.detection.num_hands) as hands:
+with mp_hands.Hands(min_detection_confidence=DetectionConfig.detection_confidence,
+                    min_tracking_confidence=DetectionConfig.tracking_confidence,
+                    max_num_hands=DetectionConfig.num_hands) as hands:
     while cap.isOpened():
 
         key = cv2.waitKey(1) & 0xFF
@@ -72,7 +72,7 @@ with mp_hands.Hands(min_detection_confidence=config.detection.detection_confiden
                 angle = calculate_angle(
                     a=key_points[fingers_info[finger]["id"][0]],
                     b=key_points[fingers_info[finger]["id"][1]],
-                    c=key_points[config.fingersID.wrist[0]]
+                    c=key_points[FingersID.wrist[0]]
                 )
 
                 fingers_info[finger]["angle"] = angle

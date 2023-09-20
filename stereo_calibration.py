@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 
 from Camera import Camera
-from Calibration import StereoConfig, MonoConfig
+from config import StereoConfig, MonoConfig, ReconstructionsConfig
 from Calibration import stereo_camera_calibration, save_json, read_json
 
 from multiprocessing import Process, Barrier
@@ -18,9 +18,12 @@ arguments = parser.parse_args()
 if arguments.stream:
     try:
         shutil.rmtree(StereoConfig.path)
-        os.mkdir(StereoConfig.path)
     except FileNotFoundError:
         pass
+
+    try:
+        os.mkdir(StereoConfig.path)
+        os.mkdir(ReconstructionsConfig.inside_camera_parameters_path)
     except FileExistsError:
         pass
 
@@ -28,6 +31,8 @@ if arguments.stream:
 def main():
 
     barrier = Barrier(len(StereoConfig.camera_ids))
+
+    process = []
 
     for camera_id in StereoConfig.camera_ids:
 
@@ -46,12 +51,15 @@ def main():
             }
 
             mp_process = Process(target=camera.stream, kwargs=kwargs_cameras, name=f"Camera_{camera_id}")
+            process.append(mp_process)
 
             mp_process.start()
-            mp_process.join()
 
-    inside_camera_params_left = read_json(f"{MonoConfig.path}/camera_{StereoConfig.camera_ids[0]}.json")
-    inside_camera_params_right = read_json(f"{MonoConfig.path}/camera_{StereoConfig.camera_ids[1]}.json")
+    if arguments.stream:
+        process[0].join()
+
+    inside_camera_params_left = read_json(f"{ReconstructionsConfig.inside_camera_parameters_path}/camera_{StereoConfig.camera_ids[0]}.json")
+    inside_camera_params_right = read_json(f"{ReconstructionsConfig.inside_camera_parameters_path}/camera_{StereoConfig.camera_ids[1]}.json")
 
     R, T = stereo_camera_calibration(matrix1=np.array(inside_camera_params_left["matrix"]),
                                      matrix2=np.array(inside_camera_params_right["matrix"]),
@@ -84,7 +92,7 @@ def main():
     }
 
     save_json(data=inside_stereo_params,
-              path=StereoConfig.path,
+              path=ReconstructionsConfig.inside_camera_parameters_path,
               name_file=f"stereo_params")
 
 
