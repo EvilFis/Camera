@@ -6,7 +6,7 @@ import shutil
 import argparse
 
 from Camera import Camera
-from config import MonoConfig, ReconstructionsConfig
+from config import CalibrationConfig, ReconstructionsConfig, CameraConfig
 from Calibration import mono_calibration_camera, save_json
 
 parser = argparse.ArgumentParser(description="Test file")
@@ -17,35 +17,35 @@ arguments = parser.parse_args()
 
 if arguments.stream:
     try:
-        shutil.rmtree(MonoConfig.path)
+        shutil.rmtree(CalibrationConfig.mono_calibration_path)
     except FileNotFoundError:
         pass
 
     try:
-        os.mkdir(MonoConfig.path)
+        os.mkdir(CalibrationConfig.mono_calibration_path)
         os.mkdir(ReconstructionsConfig.inside_camera_parameters_path)
     except FileExistsError:
         pass
 
 
-for camera_id in MonoConfig.camera_ids:
+for camera_id in CameraConfig.ids:
 
     if arguments.stream:
         camera = Camera(device_id=camera_id,
                         mode="frame",
-                        width=MonoConfig.width,
-                        height=MonoConfig.height)
+                        width=CameraConfig.width,
+                        height=CameraConfig.height)
 
-        camera.stream(img_count=MonoConfig.img_count,
-                      time_out=MonoConfig.time_out,
-                      path=MonoConfig.path,
-                      show_gui=MonoConfig.show_gui)
+        camera.stream(img_count=CalibrationConfig.img_count,
+                      time_out=CalibrationConfig.time_out,
+                      path=CalibrationConfig.mono_calibration_path,
+                      show_gui=CalibrationConfig.show_gui)
 
     ret, mtx, dist, rvecs, tvecs = mono_calibration_camera(
-        path=f"{MonoConfig.path}/Camera_{camera_id}_frame/",
-        rows=MonoConfig.rows,
-        columns=MonoConfig.columns,
-        save=MonoConfig.save
+        path=f"{CalibrationConfig.mono_calibration_path}/Camera_{camera_id}_frame/",
+        rows=CalibrationConfig.rows,
+        columns=CalibrationConfig.columns,
+        save=CalibrationConfig.save
     )
 
     rvecs = tuple(val.tolist() for val in rvecs)

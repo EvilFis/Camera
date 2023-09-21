@@ -18,28 +18,11 @@ fingers:
   ring: [16, 13]
   pinky: [20, 17]
 
-mono_calibration:
-  camera_ids: [0, 1]
-  mode: "frame"
-  width: 640 # Ширина
-  height: 480 # Высота
+calibration:
   img_count: 10
   time_out: 3
-  path: "./MonoCalibrationImages"
-  show_gui: 1
-  rows: 6
-  columns: 9
-  type_calib: "chess"
-  save: 0
-
-stereo_calibration:
-  camera_ids: [0, 1]
-  mode: "frame"
-  width: 640 # Ширина
-  height: 480 # Высота
-  img_count: 10
-  time_out: 3
-  path: "./StereoCalibrationImages"
+  mono_calibration_path: "./MonoCalibrationImages"
+  stereo_calibration_path: "./StereoCalibrationImages"
   show_gui: 1
   rows: 6
   columns: 9

@@ -107,7 +107,7 @@ def mono_calibration_camera(path, rows, columns, resize=None, type_calib="chess"
             imgpoints.append(corners)
 
         cv2.imshow("Calib", img)
-        cv2.waitKey(10)
+        cv2.waitKey(500)
 
     cv2.destroyWindow("Calib")
     height, width = img.shape[:2]
