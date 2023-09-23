@@ -9,6 +9,13 @@ with open("config.yaml", "r") as __config_yaml:
 @dataclass
 class ReconstructionsConfig:
     inside_camera_parameters_path: str = _config["reconstruction"]["inside_camera_parameters_path"]
+    thumb_connections: ClassVar[list[list[int, int]]] = _config["reconstruction"]["thumb_connections"]
+    index_connections: ClassVar[list[list[int, int]]] = _config["reconstruction"]["index_connections"]
+    middle_connections: ClassVar[list[list[int, int]]] = _config["reconstruction"]["middle_connections"]
+    ring_connections: ClassVar[list[list[int, int]]] = _config["reconstruction"]["ring_connections"]
+    pinkie_connections: ClassVar[list[list[int, int]]] = _config["reconstruction"]["pinkie_connections"]
+    fingers_colors: ClassVar[list[str]] = _config["reconstruction"]["fingers_colors"]
+    world_image: int = _config["reconstruction"]["world_image"]
 
 
 @dataclass
