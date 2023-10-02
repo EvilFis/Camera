@@ -29,8 +29,7 @@ def __prediction(image: np.ndarray,
 
     hand_landmarks = prediction.multi_hand_landmarks
     key_points = [(-1, -1) for _ in range(len(mp.solutions.hands.HAND_CONNECTIONS))]
-    # TODO УБрать
-    print(key_points)
+
 
     if hand_landmarks:
         # hand_label = prediction.multi_handedness[0].classification[0].label

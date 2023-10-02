@@ -1,4 +1,7 @@
 import cv2
+import time
+import serial
+import threading
 import numpy as np
 import mediapipe as mp
 import matplotlib.pyplot as plt
@@ -6,10 +9,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from multiprocessing import Process, Barrier, Pipe
 
+
 from Camera import Camera
 from Calibration import read_json
 from HandRecognition import get_frame_keypoints, draw_landmarks, calculate_angle
-from config import FingersID, CameraConfig, DetectionConfig, ReconstructionsConfig
+from config import FingersID, CameraConfig, DetectionConfig, ReconstructionsConfig, ArduinoArm
 
 
 def __prediction(image: np.ndarray,
@@ -281,6 +285,9 @@ def hand_detection(barrier: Barrier,
     P0 = left_matrix @ np.concatenate([left_R, left_T], axis=-1)
     P1 = right_matrix @ np.concatenate([right_R, right_T], axis=-1)
 
+    arduino = serial.Serial(port=ArduinoArm.com, baudrate=ArduinoArm.baud)
+    arduino_code = 200
+
     while True:
         key = cv2.waitKey(1) & 0xFF
 
@@ -295,6 +302,15 @@ def hand_detection(barrier: Barrier,
         frame_right_camera, fingers_info_right_camera, kps_right = __prediction(frame_right_camera, hands_right,
                                                                                 fingers_info_right_camera)
 
+        # Установка общего значения пальцев
+        fingers_info = {
+            "Thumb": fingers_info_left_camera["Thumb"]["close_finger"] or fingers_info_right_camera["Thumb"]["close_finger"],
+            "Index": fingers_info_left_camera["Index"]["close_finger"] or fingers_info_right_camera["Index"]["close_finger"],
+            "Middle": fingers_info_left_camera["Middle"]["close_finger"] or fingers_info_right_camera["Middle"]["close_finger"],
+            "Ring": fingers_info_left_camera["Ring"]["close_finger"] or fingers_info_right_camera["Ring"]["close_finger"],
+            "Pinky": fingers_info_left_camera["Pinky"]["close_finger"] or fingers_info_right_camera["Pinky"]["close_finger"]
+        }
+
         # Производим прямые линейные преобразования
         frame_p3ds = []
         for uv1, uv2 in zip(kps_left, kps_right):
@@ -305,7 +321,16 @@ def hand_detection(barrier: Barrier,
             frame_p3ds.append(_p3d)
 
         frame_p3ds = np.array(frame_p3ds).reshape((len(mp.solutions.hands.HAND_CONNECTIONS), 3))
-        print(frame_p3ds)
+
+        message = "$"
+        for i in fingers_info:
+            message += str(int(not fingers_info[i]))
+        message += "$"
+
+        if arduino_code == 200:
+            arduino.write(bytes(message, "utf-8"))
+
+        arduino_code = int(arduino.read(3).decode())
 
         # Визуализируем полученные результаты
         send_visualize.send(frame_p3ds)

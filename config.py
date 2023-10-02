@@ -54,3 +54,9 @@ class FingersID:
     middle: ClassVar[list[int]] = _config["fingers"]["middle"]
     ring: ClassVar[list[int]] = _config["fingers"]["ring"]
     pinky: ClassVar[list[int]] = _config["fingers"]["pinky"]
+
+
+@dataclass
+class ArduinoArm:
+    com: str = _config["arduino_arm"]["com"]
+    baud: int = _config["arduino_arm"]["baud"]
