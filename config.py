@@ -64,6 +64,7 @@ class ArduinoArm:
     baud: int = _config["arduino_arm"]["baud"]
 
 
+
 ReconstructionsConfig.thumb_connections = _config["reconstruction"]["thumb_connections"]
 ReconstructionsConfig.index_connections = _config["reconstruction"]["index_connections"]
 ReconstructionsConfig.middle_connections = _config["reconstruction"]["middle_connections"]
