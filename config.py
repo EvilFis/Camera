@@ -65,11 +65,11 @@ class ArduinoArm:
 
 
 ReconstructionsConfig.thumb_connections = _config["reconstruction"]["thumb_connections"]
-ReconstructionsConfig.index_connections = _config["reconstruction"]["thumb_connections"]
-ReconstructionsConfig.middle_connections = _config["reconstruction"]["index_connections"]
-ReconstructionsConfig.ring_connections = _config["reconstruction"]["middle_connections"]
-ReconstructionsConfig.pinkie_connections = _config["reconstruction"]["ring_connections"]
-ReconstructionsConfig.fingers_colors = _config["reconstruction"]["pinkie_connections"]
+ReconstructionsConfig.index_connections = _config["reconstruction"]["index_connections"]
+ReconstructionsConfig.middle_connections = _config["reconstruction"]["middle_connections"]
+ReconstructionsConfig.ring_connections = _config["reconstruction"]["ring_connections"]
+ReconstructionsConfig.pinkie_connections = _config["reconstruction"]["pinkie_connections"]
+ReconstructionsConfig.fingers_colors = _config["reconstruction"]["fingers_colors"]
 
 CameraConfig.ids = _config["camera"]["ids"]
 

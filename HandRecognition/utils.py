@@ -1,11 +1,11 @@
 import cv2
 import numpy as np
-from typing import NamedTuple, Optional, List, Tuple
+from typing import NamedTuple
 
 
 def get_frame_keypoints(landmarks: NamedTuple,
                         img: np.ndarray,
-                        count_points: int) -> list[tuple[int, int]]:
+                        count_points: int) -> list:
     """
     Получение ключевых точек в реальных координатах
     :param landmarks: Распознанные ключевые точки
@@ -26,8 +26,8 @@ def get_frame_keypoints(landmarks: NamedTuple,
 
 
 def draw_landmarks(img: np.ndarray,
-                   landmark_list: list[tuple[int, int]],
-                   connection: Optional[List[Tuple[int, int]]],
+                   landmark_list: list,
+                   connection: list,
                    line_color: tuple = (255, 255, 255),
                    point_color: tuple = (0, 0, 255)
                    ) -> np.ndarray:
