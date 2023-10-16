@@ -1,0 +1,44 @@
+detection:
+  min_detection_confidence: 0.8
+  min_tracking_confidence: 0.5
+  max_num_hands: 1 # Максимальное колличество распозноваемых рук
+
+
+camera:
+  ids: [0, 1] # Список камер, задается обязательно в квадратных скобках, через запятую. Например [0, 1, 2],
+  mode: "stream" # Доступные режимы: "stream", "video", "frame"
+  width: 640 # Ширина
+  height: 480 # Высота
+
+fingers:
+  wrist: [0]
+  thumb: [4, 1]
+  index: [8, 5]
+  middle: [12, 9]
+  ring: [16, 13]
+  pinky: [20, 17]
+
+calibration:
+  img_count: 10
+  time_out: 3
+  mono_calibration_path: "./MonoCalibrationImages"
+  stereo_calibration_path: "./StereoCalibrationImages"
+  show_gui: 1
+  rows: 6
+  columns: 9
+  type_calib: "chess"
+  save: 0
+
+reconstruction:
+  inside_camera_parameters_path: "./InsideCameraParameters"
+  thumb_connections: [[0, 1], [1, 2], [2, 3], [3, 4]]
+  index_connections: [[0, 5], [5, 6], [6, 7], [7, 8]]
+  middle_connections: [[0, 9], [9, 10], [10, 11], [11, 12]]
+  ring_connections: [[0, 13], [13, 14], [14, 15], [15, 16]]
+  pinkie_connections: [[0, 17], [17, 18], [18, 19], [19, 20]]
+  fingers_colors: ['red', 'blue', 'green', 'black', 'orange']
+  world_image: 1
+
+arduino_arm:
+  com: "COM6"
+  baud: 1000000

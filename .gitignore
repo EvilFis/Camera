@@ -1,0 +1,8 @@
+/camera_venv
+.idea
+/log
+/MonoCalibrationImages
+/StereoCalibrationImages
+/InsideCameraParameters
+
+test.py
